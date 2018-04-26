@@ -49,7 +49,8 @@ class Byml:
         self._root_node_offset = _uint32(self._data, 12, self._be)
 
         self._node_name_array = self._parse_string_array(self._node_name_array_offset)
-        self._string_array = self._parse_string_array(self._string_array_offset)
+        if self._string_array_offset != 0:
+            self._string_array = self._parse_string_array(self._string_array_offset)
 
     def parse(self):
         """Parse the BYML and get the root node with all children."""
