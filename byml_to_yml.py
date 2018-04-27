@@ -6,6 +6,7 @@ import byml
 
 if len(sys.argv) != 2 or sys.argv[1] in ['-h', '--help']:
     sys.stderr.write("Usage: byml_to_yml.py <BYML>")
+    sys.exit(1)
 
 class Dumper(yaml.Dumper):
     def increase_indent(self, flow=False, indentless=False):

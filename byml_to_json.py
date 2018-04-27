@@ -6,6 +6,7 @@ import byml
 
 if len(sys.argv) != 2 or sys.argv[1] in ['-h', '--help']:
     sys.stderr.write("Usage: byml_to_json.py <BYML>")
+    sys.exit(1)
 
 with open(sys.argv[1], "rb") as file:
     data = file.read()
