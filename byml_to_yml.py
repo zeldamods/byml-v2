@@ -15,4 +15,4 @@ class Dumper(yaml.Dumper):
 with open(sys.argv[1], "rb") as file:
     data = file.read()
     root = byml.Byml(data).parse()
-    yaml.dump(root, sys.stdout, Dumper=Dumper)
+    yaml.dump(root, sys.stdout, Dumper=Dumper, allow_unicode=True)
