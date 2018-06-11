@@ -167,7 +167,8 @@ class _PlaceholderOffsetWriter:
         self._stream = stream
         self._offset = stream.tell()
         self._parent = parent
-        stream.write(parent._u32(0xffffffff))
+    def write_placeholder(self) -> None:
+        self._stream.write(self._parent._u32(0xffffffff))
     def write_current_offset(self, base: int = 0) -> None:
         current_offset = self._stream.tell()
         self._stream.seek(self._offset)
@@ -198,9 +199,9 @@ class Writer:
         # Header
         stream.write(b'BY' if self._be else b'YB')
         stream.write(self._u16(self._version))
-        hash_key_table_offset_writer = _PlaceholderOffsetWriter(stream, self)
-        string_table_offset_writer = _PlaceholderOffsetWriter(stream, self)
-        root_node_offset_writer = _PlaceholderOffsetWriter(stream, self)
+        hash_key_table_offset_writer = self._write_placeholder_offset(stream)
+        string_table_offset_writer = self._write_placeholder_offset(stream)
+        root_node_offset_writer = self._write_placeholder_offset(stream)
 
         # Hash key table
         hash_key_table_offset_writer.write_current_offset()
@@ -247,8 +248,8 @@ class Writer:
         stream.write(self._u24(len(table)))
         offset_writers: typing.List[_PlaceholderOffsetWriter] = []
         for i in range(len(table)):
-            offset_writers.append(_PlaceholderOffsetWriter(stream, self))
-        last_offset_writer = _PlaceholderOffsetWriter(stream, self)
+            offset_writers.append(self._write_placeholder_offset(stream))
+        last_offset_writer = self._write_placeholder_offset(stream)
 
         i = 0
         for string in table.keys():
@@ -271,7 +272,7 @@ class Writer:
                 if _is_value_type(self._to_byml_type(item)):
                     stream.write(self._to_byml_value(item))
                 else:
-                    nonvalue_nodes.append((item, _PlaceholderOffsetWriter(stream, self)))
+                    nonvalue_nodes.append((item, self._write_placeholder_offset(stream)))
         elif isinstance(data, dict):
             stream.write(self._u8(0xc1))
             stream.write(self._u24(len(data)))
@@ -282,7 +283,7 @@ class Writer:
                 if _is_value_type(node_type):
                     stream.write(self._to_byml_value(value))
                 else:
-                    nonvalue_nodes.append((value, _PlaceholderOffsetWriter(stream, self)))
+                    nonvalue_nodes.append((value, self._write_placeholder_offset(stream)))
         elif isinstance(data, int) and 32 < data.bit_length() <= 64:
             stream.write(self._s64(data) if data < 0 else self._u64(data))
         elif isinstance(data, float) and not _is_float(data):
@@ -325,6 +326,11 @@ class Writer:
         if isinstance(value, float) and _is_float(value):
             return self._f32(value)
         raise ValueError("Invalid value type")
+
+    def _write_placeholder_offset(self, stream) -> _PlaceholderOffsetWriter:
+        p = _PlaceholderOffsetWriter(stream, self)
+        p.write_placeholder()
+        return p
 
     def _u8(self, value) -> bytes:
         return struct.pack('B', value)
