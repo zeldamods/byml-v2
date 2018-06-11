@@ -19,6 +19,12 @@ yml_to_byml.py   PATH_TO_YAML
 
 Output will be sent to stdout and can be piped into a file.
 
+Pass `-` as the path to read from stdin. This can be combined with wszst to read sbyml files easily:
+
+```
+wszst de $BOTW_ROM/Pack/Bootup/Ecosystem/LevelSensor.sbyml -d- | byml_to_yml.py -
+```
+
 ### Library
 
 ```python
