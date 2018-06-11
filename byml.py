@@ -47,12 +47,12 @@ class Byml:
         if version != 2:
             raise ValueError("Invalid version: %u (expected 2)" % version)
 
-        self._node_name_array_offset = _uint32(self._data, 4, self._be)
-        self._string_array_offset = _uint32(self._data, 8, self._be)
+        self._hash_key_table_offset = _uint32(self._data, 4, self._be)
+        self._string_table_offset = _uint32(self._data, 8, self._be)
 
-        self._node_name_array = self._parse_string_array(self._node_name_array_offset)
-        if self._string_array_offset != 0:
-            self._string_array = self._parse_string_array(self._string_array_offset)
+        self._node_name_array = self._parse_string_array(self._hash_key_table_offset)
+        if self._string_table_offset != 0:
+            self._string_array = self._parse_string_array(self._string_table_offset)
 
     def parse(self):
         """Parse the BYML and get the root node with all children."""
