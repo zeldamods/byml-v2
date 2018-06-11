@@ -1,4 +1,4 @@
-## Simple bymlv2 parser + converter
+## Simple bymlv2 parser + writer + converters
 
 Features:
 
@@ -13,6 +13,7 @@ Features:
 ```
 byml_to_json.py  PATH_TO_BYML
 byml_to_yml.py   PATH_TO_BYML
+yml_to_byml.py   PATH_TO_YAML
 ```
 
 Output will be sent to stdout and can be piped into a file.
