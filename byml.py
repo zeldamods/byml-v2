@@ -50,9 +50,9 @@ class Byml:
         self._hash_key_table_offset = self._read_u32(4)
         self._string_table_offset = self._read_u32(8)
 
-        self._node_name_array = self._parse_string_table(self._hash_key_table_offset)
+        self._hash_key_table = self._parse_string_table(self._hash_key_table_offset)
         if self._string_table_offset != 0:
-            self._string_array = self._parse_string_table(self._string_table_offset)
+            self._string_table = self._parse_string_table(self._string_table_offset)
 
     def parse(self) -> typing.Union[list, dict]:
         """Parse the BYML and get the root node with all children."""
@@ -99,7 +99,7 @@ class Byml:
         raise ValueError("Unknown node type: 0x%x" % node_type)
 
     def _parse_string_node(self, index: int) -> str:
-        return self._string_array[index]
+        return self._string_table[index]
 
     def _parse_array_node(self, offset: int) -> list:
         size = self._read_u24(offset + 1)
@@ -118,7 +118,7 @@ class Byml:
         for i in range(size):
             entry_offset: int = offset + 4 + 8*i
             string_index: int = self._read_u24(entry_offset + 0)
-            name: str = self._node_name_array[string_index]
+            name: str = self._hash_key_table[string_index]
 
             node_type = self._data[entry_offset + 3]
             result[name] = self._parse_node(node_type, entry_offset + 4)
