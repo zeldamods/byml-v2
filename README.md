@@ -25,7 +25,7 @@ Output will be sent to stdout and can be piped into a file.
 import byml
 
 parser = byml.Byml(raw_bytes)
-document = byml.Byml(raw_bytes).parse()
+document = parser.parse()
 
 writer = byml.Writer(document, be=big_endian_mode, version=byml_version)
 writer.write(writable_seekable_stream)
