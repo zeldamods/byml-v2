@@ -88,6 +88,14 @@ class Byml:
             return self._parse_f32_node(offset)
         if node_type == 0xd3:
             return self._parse_u32_node(offset)
+        if node_type == 0xd4:
+            return self._parse_s64_node(_uint32(self._data, offset, self._be))
+        if node_type == 0xd5:
+            return self._parse_u64_node(_uint32(self._data, offset, self._be))
+        if node_type == 0xd6:
+            return self._parse_f64_node(_uint32(self._data, offset, self._be))
+        if node_type == 0xff:
+            return None
         raise ValueError("Unknown node type: 0x%x" % node_type)
 
     def _parse_string_node(self, index: int) -> str:
@@ -128,3 +136,12 @@ class Byml:
 
     def _parse_u32_node(self, offset: int) -> int:
         return _uint32(self._data, offset, self._be)
+
+    def _parse_s64_node(self, offset: int) -> int:
+        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'q', self._data, offset)[0]
+
+    def _parse_u64_node(self, offset: int) -> int:
+        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'Q', self._data, offset)[0]
+
+    def _parse_f64_node(self, offset: int) -> float:
+        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'd', self._data, offset)[0]
