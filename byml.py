@@ -8,7 +8,7 @@ from sortedcontainers import SortedDict # type: ignore
 import struct
 import typing
 
-NULL_TERMINATOR = b'\x00'
+_NUL_CHAR = b'\x00'
 
 def _get_unpack_endian_character(big_endian: bool):
     return '>' if big_endian else '<'
@@ -18,14 +18,14 @@ def _uint16(data: bytes, offset: int, be: bool) -> int:
 
 def _uint24(data: bytes, offset: int, be: bool) -> int:
     if be:
-        return struct.unpack('>I', NULL_TERMINATOR + data[offset:offset+3])[0]
-    return struct.unpack('<I', data[offset:offset+3] + NULL_TERMINATOR)[0]
+        return struct.unpack('>I', _NUL_CHAR + data[offset:offset+3])[0]
+    return struct.unpack('<I', data[offset:offset+3] + _NUL_CHAR)[0]
 
 def _uint32(data: bytes, offset: int, be: bool) -> int:
     return struct.unpack_from(_get_unpack_endian_character(be) + 'I', data, offset)[0]
 
 def _string(data: bytes, offset: int) -> str:
-    end = data.find(NULL_TERMINATOR, offset)
+    end = data.find(_NUL_CHAR, offset)
     return data[offset:end].decode('utf-8')
 
 def _align_up(value: int, size: int) -> int:
@@ -254,7 +254,7 @@ class Writer:
         for string in table.keys():
             offset_writers[i].write_current_offset(base)
             stream.write(bytes(string, "utf8"))
-            stream.write(NULL_TERMINATOR)
+            stream.write(_NUL_CHAR)
             i += 1
         last_offset_writer.write_current_offset(base)
 
