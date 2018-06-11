@@ -12,7 +12,12 @@ class Dumper(yaml.Dumper):
     def increase_indent(self, flow=False, indentless=False):
         return super(Dumper, self).increase_indent(flow, False)
 
-with open(sys.argv[1], "rb") as file:
+if sys.argv[1] == '-':
+    f = sys.stdin.buffer
+else:
+    f = open(sys.argv[1], "rb")
+
+with f as file:
     data = file.read()
     root = byml.Byml(data).parse()
     yaml.dump(root, sys.stdout, Dumper=Dumper, allow_unicode=True)
