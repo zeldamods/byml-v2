@@ -52,9 +52,9 @@ class Byml:
         self._hash_key_table_offset = _uint32(self._data, 4, self._be)
         self._string_table_offset = _uint32(self._data, 8, self._be)
 
-        self._node_name_array = self._parse_string_array(self._hash_key_table_offset)
+        self._node_name_array = self._parse_string_table(self._hash_key_table_offset)
         if self._string_table_offset != 0:
-            self._string_array = self._parse_string_array(self._string_table_offset)
+            self._string_array = self._parse_string_table(self._string_table_offset)
 
     def parse(self):
         """Parse the BYML and get the root node with all children."""
@@ -63,7 +63,7 @@ class Byml:
             raise ValueError("Invalid root node: expected array or dict, got type 0x%x" % node_type)
         return self._parse_node(node_type, 12)
 
-    def _parse_string_array(self, offset) -> typing.List[str]:
+    def _parse_string_table(self, offset) -> typing.List[str]:
         if self._data[offset] != 0xc2:
             raise ValueError("Invalid node type: 0x%x (expected 0xc2)" % self._data[offset])
 
@@ -81,21 +81,21 @@ class Byml:
         if node_type == 0xc0:
             return self._parse_array_node(_uint32(self._data, offset, self._be))
         if node_type == 0xc1:
-            return self._parse_dict_node(_uint32(self._data, offset, self._be))
+            return self._parse_hash_node(_uint32(self._data, offset, self._be))
         if node_type == 0xd0:
             return self._parse_bool_node(offset)
         if node_type == 0xd1:
-            return self._parse_s32_node(offset)
+            return self._parse_int_node(offset)
         if node_type == 0xd2:
-            return self._parse_f32_node(offset)
+            return self._parse_float_node(offset)
         if node_type == 0xd3:
-            return self._parse_u32_node(offset)
+            return self._parse_uint_node(offset)
         if node_type == 0xd4:
-            return self._parse_s64_node(_uint32(self._data, offset, self._be))
+            return self._parse_int64_node(_uint32(self._data, offset, self._be))
         if node_type == 0xd5:
-            return self._parse_u64_node(_uint32(self._data, offset, self._be))
+            return self._parse_uint64_node(_uint32(self._data, offset, self._be))
         if node_type == 0xd6:
-            return self._parse_f64_node(_uint32(self._data, offset, self._be))
+            return self._parse_double_node(_uint32(self._data, offset, self._be))
         if node_type == 0xff:
             return None
         raise ValueError("Unknown node type: 0x%x" % node_type)
@@ -113,9 +113,9 @@ class Byml:
             array.append(self._parse_node(node_type, value_array_offset + 4*i))
         return array
 
-    def _parse_dict_node(self, offset: int) -> dict:
+    def _parse_hash_node(self, offset: int) -> dict:
         size = _uint24(self._data, offset + 1, self._be)
-        logging.info("Parsing dict node with %u entries" % size)
+        logging.info("Parsing hash node with %u entries" % size)
         result: dict = dict()
         for i in range(size):
             entry_offset: int = offset + 4 + 8*i
@@ -128,22 +128,22 @@ class Byml:
         return result
 
     def _parse_bool_node(self, offset: int) -> bool:
-        return self._parse_u32_node(offset) != 0
+        return self._parse_uint_node(offset) != 0
 
-    def _parse_s32_node(self, offset: int) -> int:
+    def _parse_int_node(self, offset: int) -> int:
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'i', self._data, offset)[0]
 
-    def _parse_f32_node(self, offset: int) -> float:
+    def _parse_float_node(self, offset: int) -> float:
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'f', self._data, offset)[0]
 
-    def _parse_u32_node(self, offset: int) -> int:
+    def _parse_uint_node(self, offset: int) -> int:
         return _uint32(self._data, offset, self._be)
 
-    def _parse_s64_node(self, offset: int) -> int:
+    def _parse_int64_node(self, offset: int) -> int:
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'q', self._data, offset)[0]
 
-    def _parse_u64_node(self, offset: int) -> int:
+    def _parse_uint64_node(self, offset: int) -> int:
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'Q', self._data, offset)[0]
 
-    def _parse_f64_node(self, offset: int) -> float:
+    def _parse_double_node(self, offset: int) -> float:
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'd', self._data, offset)[0]
