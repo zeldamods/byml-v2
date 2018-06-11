@@ -13,21 +13,6 @@ _NUL_CHAR = b'\x00'
 def _get_unpack_endian_character(big_endian: bool):
     return '>' if big_endian else '<'
 
-def _uint16(data: bytes, offset: int, be: bool) -> int:
-    return struct.unpack_from(_get_unpack_endian_character(be) + 'H', data, offset)[0]
-
-def _uint24(data: bytes, offset: int, be: bool) -> int:
-    if be:
-        return struct.unpack('>I', _NUL_CHAR + data[offset:offset+3])[0]
-    return struct.unpack('<I', data[offset:offset+3] + _NUL_CHAR)[0]
-
-def _uint32(data: bytes, offset: int, be: bool) -> int:
-    return struct.unpack_from(_get_unpack_endian_character(be) + 'I', data, offset)[0]
-
-def _string(data: bytes, offset: int) -> str:
-    end = data.find(_NUL_CHAR, offset)
-    return data[offset:end].decode('utf-8')
-
 def _align_up(value: int, size: int) -> int:
     return value + (size - value % size) % size
 
@@ -56,22 +41,22 @@ class Byml:
         else:
             raise ValueError("Invalid magic: %s (expected 'BY' or 'YB')" % magic)
 
-        version = _uint16(self._data, 2, self._be)
+        version = self._read_u16(2)
         if not (1 <= version <= 3):
             raise ValueError("Invalid version: %u (expected 0-3)" % version)
         if version == 1 and self._be:
             raise ValueError("Invalid version: %u-wiiu (expected 0-3)" % version)
 
-        self._hash_key_table_offset = _uint32(self._data, 4, self._be)
-        self._string_table_offset = _uint32(self._data, 8, self._be)
+        self._hash_key_table_offset = self._read_u32(4)
+        self._string_table_offset = self._read_u32(8)
 
         self._node_name_array = self._parse_string_table(self._hash_key_table_offset)
         if self._string_table_offset != 0:
             self._string_array = self._parse_string_table(self._string_table_offset)
 
-    def parse(self):
+    def parse(self) -> typing.Union[list, dict]:
         """Parse the BYML and get the root node with all children."""
-        node_type = self._data[_uint32(self._data, 12, self._be)]
+        node_type = self._data[self._read_u32(12)]
         if not _is_container_type(node_type):
             raise ValueError("Invalid root node: expected array or dict, got type 0x%x" % node_type)
         return self._parse_node(node_type, 12)
@@ -81,20 +66,20 @@ class Byml:
             raise ValueError("Invalid node type: 0x%x (expected 0xc2)" % self._data[offset])
 
         array = list()
-        size = _uint24(self._data, offset + 1, self._be)
+        size = self._read_u24(offset + 1)
         for i in range(size):
-            string_offset = offset + _uint32(self._data, offset + 4 + 4*i, self._be)
-            array.append(_string(self._data, string_offset))
+            string_offset = offset + self._read_u32(offset + 4 + 4*i)
+            array.append(self._read_string(string_offset))
         return array
 
-    def _parse_node(self, node_type, offset):
+    def _parse_node(self, node_type: int, offset: int):
         logging.info("Parsing node with type=0x%x offset=0x%08x" % (node_type, offset))
         if node_type == 0xa0:
-            return self._parse_string_node(_uint32(self._data, offset, self._be))
+            return self._parse_string_node(self._read_u32(offset))
         if node_type == 0xc0:
-            return self._parse_array_node(_uint32(self._data, offset, self._be))
+            return self._parse_array_node(self._read_u32(offset))
         if node_type == 0xc1:
-            return self._parse_hash_node(_uint32(self._data, offset, self._be))
+            return self._parse_hash_node(self._read_u32(offset))
         if node_type == 0xd0:
             return self._parse_bool_node(offset)
         if node_type == 0xd1:
@@ -104,11 +89,11 @@ class Byml:
         if node_type == 0xd3:
             return self._parse_uint_node(offset)
         if node_type == 0xd4:
-            return self._parse_int64_node(_uint32(self._data, offset, self._be))
+            return self._parse_int64_node(self._read_u32(offset))
         if node_type == 0xd5:
-            return self._parse_uint64_node(_uint32(self._data, offset, self._be))
+            return self._parse_uint64_node(self._read_u32(offset))
         if node_type == 0xd6:
-            return self._parse_double_node(_uint32(self._data, offset, self._be))
+            return self._parse_double_node(self._read_u32(offset))
         if node_type == 0xff:
             return None
         raise ValueError("Unknown node type: 0x%x" % node_type)
@@ -117,7 +102,7 @@ class Byml:
         return self._string_array[index]
 
     def _parse_array_node(self, offset: int) -> list:
-        size = _uint24(self._data, offset + 1, self._be)
+        size = self._read_u24(offset + 1)
         logging.info("Parsing array node with %u entries" % size)
         array: list = list()
         value_array_offset: int = offset + _align_up(size, 4) + 4
@@ -127,12 +112,12 @@ class Byml:
         return array
 
     def _parse_hash_node(self, offset: int) -> dict:
-        size = _uint24(self._data, offset + 1, self._be)
+        size = self._read_u24(offset + 1)
         logging.info("Parsing hash node with %u entries" % size)
         result: dict = dict()
         for i in range(size):
             entry_offset: int = offset + 4 + 8*i
-            string_index: int = _uint24(self._data, entry_offset + 0, self._be)
+            string_index: int = self._read_u24(entry_offset + 0)
             name: str = self._node_name_array[string_index]
 
             node_type = self._data[entry_offset + 3]
@@ -150,7 +135,7 @@ class Byml:
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'f', self._data, offset)[0]
 
     def _parse_uint_node(self, offset: int) -> int:
-        return _uint32(self._data, offset, self._be)
+        return self._read_u32(offset)
 
     def _parse_int64_node(self, offset: int) -> int:
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'q', self._data, offset)[0]
@@ -160,6 +145,21 @@ class Byml:
 
     def _parse_double_node(self, offset: int) -> float:
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'd', self._data, offset)[0]
+
+    def _read_u16(self, offset: int) -> int:
+        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'H', self._data, offset)[0]
+
+    def _read_u24(self, offset: int) -> int:
+        if self._be:
+            return struct.unpack('>I', _NUL_CHAR + self._data[offset:offset+3])[0]
+        return struct.unpack('<I', self._data[offset:offset+3] + _NUL_CHAR)[0]
+
+    def _read_u32(self, offset: int) -> int:
+        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'I', self._data, offset)[0]
+
+    def _read_string(self, offset: int) -> str:
+        end = self._data.find(_NUL_CHAR, offset)
+        return self._data[offset:end].decode('utf-8')
 
 class _PlaceholderOffsetWriter:
     """Writes a placeholder offset value that will be filled later."""
