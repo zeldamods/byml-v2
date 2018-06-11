@@ -1,7 +1,9 @@
-## Simple bymlv2 parser + byml-to-yml script
+## Simple bymlv2 parser + converter (to JSON or YAML)
 
-Unlike other parsers, this handles v2 files which is the version used in
+Features:
+
+* Handles v2 files properly. This is the version that is used by
 *The Legend of Zelda: Breath of the Wild*.
-
-Additionally, this is cross platform (and not as an afterthought) and handles
-both the big endian and little endian formats correctly.
+* Supports 64-bit node types which are used in *Super Mario Odyssey*.
+* Cross platform (and not as an afterthought).
+* Handles both the big endian and little endian formats correctly.
