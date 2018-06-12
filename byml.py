@@ -4,7 +4,6 @@
 
 from enum import IntEnum
 import ctypes
-import logging
 from sortedcontainers import SortedDict # type: ignore
 import struct
 import typing
@@ -88,7 +87,6 @@ class Byml:
         return array
 
     def _parse_node(self, node_type: int, offset: int):
-        logging.info("Parsing node with type=0x%x offset=0x%08x" % (node_type, offset))
         if node_type == NodeType.STRING:
             return self._parse_string_node(self._read_u32(offset))
         if node_type == NodeType.ARRAY:
@@ -118,7 +116,6 @@ class Byml:
 
     def _parse_array_node(self, offset: int) -> list:
         size = self._read_u24(offset + 1)
-        logging.info("Parsing array node with %u entries" % size)
         array: list = list()
         value_array_offset: int = offset + _align_up(size, 4) + 4
         for i in range(size):
@@ -128,7 +125,6 @@ class Byml:
 
     def _parse_hash_node(self, offset: int) -> dict:
         size = self._read_u24(offset + 1)
-        logging.info("Parsing hash node with %u entries" % size)
         result: dict = dict()
         for i in range(size):
             entry_offset: int = offset + 4 + 8*i
