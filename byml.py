@@ -205,6 +205,9 @@ class Writer:
         self._hash_key_table: SortedDict[str, int] = SortedDict()
         self._string_table: SortedDict[str, int] = SortedDict()
         self._make_string_table(self._data, self._hash_key_table, self._string_table)
+        # Nintendo seems to sort entries in alphabetical order.
+        self._sort_string_table(self._hash_key_table)
+        self._sort_string_table(self._string_table)
 
     def write(self, stream: typing.BinaryIO) -> None:
         # Header
@@ -230,12 +233,6 @@ class Writer:
         stream.seek(_align_up(stream.tell(), 4))
 
     def _make_string_table(self, data, hash_key_table: SortedDict, string_table: SortedDict):
-        self._make_string_table_(data, hash_key_table, string_table)
-        # Nintendo seems to sort entries in alphabetical order.
-        self._sort_string_table(hash_key_table)
-        self._sort_string_table(string_table)
-
-    def _make_string_table_(self, data, hash_key_table: SortedDict, string_table: SortedDict):
         if isinstance(data, str) and data not in string_table:
             string_table[data] = 0xffffffff
         elif isinstance(data, list):
