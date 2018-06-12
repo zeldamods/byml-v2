@@ -34,7 +34,7 @@ def _is_container_type(node_type: int) -> bool:
     return node_type == NodeType.ARRAY or node_type == NodeType.HASH
 
 def _is_value_type(node_type: NodeType) -> bool:
-    return node_type == NodeType.STRING or (NodeType.BOOL <= node_type <= NodeType.UINT)
+    return node_type == NodeType.STRING or (NodeType.BOOL <= node_type <= NodeType.UINT) or node_type == NodeType.NULL
 
 def _is_float(value: float) -> bool:
     # If a value can be represented as a float with no loss of precision,
