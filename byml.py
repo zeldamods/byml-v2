@@ -237,10 +237,8 @@ class Writer:
                 self._make_string_table(value, hash_key_table, string_table)
 
     def _sort_string_table(self, table: SortedDict):
-        i = 0
-        for key in table.keys():
+        for (i, key) in enumerate(table.keys()):
             table[key] = i
-            i += 1
 
     def _write_string_table(self, stream: typing.BinaryIO, table: typing.Dict[str, int]):
         base = stream.tell()
@@ -251,12 +249,10 @@ class Writer:
             offset_writers.append(self._write_placeholder_offset(stream))
         last_offset_writer = self._write_placeholder_offset(stream)
 
-        i = 0
-        for string in table.keys():
-            offset_writers[i].write_current_offset(base)
+        for (string, offset_writer) in zip(table.keys(), offset_writers):
+            offset_writer.write_current_offset(base)
             stream.write(bytes(string, "utf8"))
             stream.write(_NUL_CHAR)
-            i += 1
         last_offset_writer.write_current_offset(base)
 
     def _write_nonvalue_node(self, stream: typing.BinaryIO, data) -> None:
