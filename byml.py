@@ -43,9 +43,9 @@ class Byml:
 
         version = self._read_u16(2)
         if not (1 <= version <= 3):
-            raise ValueError("Invalid version: %u (expected 0-3)" % version)
+            raise ValueError("Invalid version: %u (expected 1-3)" % version)
         if version == 1 and self._be:
-            raise ValueError("Invalid version: %u-wiiu (expected 0-3)" % version)
+            raise ValueError("Invalid version: %u-wiiu (expected 1-3)" % version)
 
         self._hash_key_table_offset = self._read_u32(4)
         self._string_table_offset = self._read_u32(8)
@@ -187,9 +187,9 @@ class Writer:
             raise ValueError("Data should be a dict or a list")
 
         if not (1 <= version <= 3):
-            raise ValueError("Invalid version: %u (expected 0-3)" % version)
+            raise ValueError("Invalid version: %u (expected 1-3)" % version)
         if version == 1 and be:
-            raise ValueError("Invalid version: %u-wiiu (expected 0-3)" % version)
+            raise ValueError("Invalid version: %u-wiiu (expected 1-3)" % version)
 
         self._hash_key_table: SortedDict[str, int] = SortedDict()
         self._string_table: SortedDict[str, int] = SortedDict()
