@@ -2,11 +2,26 @@
 # Copyright 2018 leoetlino <leo@leolam.fr>
 # Licensed under MIT
 
+from enum import IntEnum
 import ctypes
 import logging
 from sortedcontainers import SortedDict # type: ignore
 import struct
 import typing
+
+class NodeType(IntEnum):
+    STRING = 0xa0
+    ARRAY = 0xc0
+    HASH = 0xc1
+    STRING_TABLE = 0xc2
+    BOOL = 0xd0
+    INT = 0xd1
+    FLOAT = 0xd2
+    UINT = 0xd3
+    INT64 = 0xd4
+    UINT64 = 0xd5
+    DOUBLE = 0xd6
+    NULL = 0xff
 
 _NUL_CHAR = b'\x00'
 
@@ -17,10 +32,10 @@ def _align_up(value: int, size: int) -> int:
     return value + (size - value % size) % size
 
 def _is_container_type(node_type: int) -> bool:
-    return node_type == 0xc0 or node_type == 0xc1
+    return node_type == NodeType.ARRAY or node_type == NodeType.HASH
 
-def _is_value_type(node_type: int) -> bool:
-    return node_type == 0xa0 or (0xd0 <= node_type <= 0xd3)
+def _is_value_type(node_type: NodeType) -> bool:
+    return node_type == NodeType.STRING or (NodeType.BOOL <= node_type <= NodeType.UINT)
 
 def _is_float(value: float) -> bool:
     # If a value can be represented as a float with no loss of precision,
@@ -62,7 +77,7 @@ class Byml:
         return self._parse_node(node_type, 12)
 
     def _parse_string_table(self, offset) -> typing.List[str]:
-        if self._data[offset] != 0xc2:
+        if self._data[offset] != NodeType.STRING_TABLE:
             raise ValueError("Invalid node type: 0x%x (expected 0xc2)" % self._data[offset])
 
         array = list()
@@ -74,27 +89,27 @@ class Byml:
 
     def _parse_node(self, node_type: int, offset: int):
         logging.info("Parsing node with type=0x%x offset=0x%08x" % (node_type, offset))
-        if node_type == 0xa0:
+        if node_type == NodeType.STRING:
             return self._parse_string_node(self._read_u32(offset))
-        if node_type == 0xc0:
+        if node_type == NodeType.ARRAY:
             return self._parse_array_node(self._read_u32(offset))
-        if node_type == 0xc1:
+        if node_type == NodeType.HASH:
             return self._parse_hash_node(self._read_u32(offset))
-        if node_type == 0xd0:
+        if node_type == NodeType.BOOL:
             return self._parse_bool_node(offset)
-        if node_type == 0xd1:
+        if node_type == NodeType.INT:
             return self._parse_int_node(offset)
-        if node_type == 0xd2:
+        if node_type == NodeType.FLOAT:
             return self._parse_float_node(offset)
-        if node_type == 0xd3:
+        if node_type == NodeType.UINT:
             return self._parse_uint_node(offset)
-        if node_type == 0xd4:
+        if node_type == NodeType.INT64:
             return self._parse_int64_node(self._read_u32(offset))
-        if node_type == 0xd5:
+        if node_type == NodeType.UINT64:
             return self._parse_uint64_node(self._read_u32(offset))
-        if node_type == 0xd6:
+        if node_type == NodeType.DOUBLE:
             return self._parse_double_node(self._read_u32(offset))
-        if node_type == 0xff:
+        if node_type == NodeType.NULL:
             return None
         raise ValueError("Unknown node type: 0x%x" % node_type)
 
@@ -242,7 +257,7 @@ class Writer:
 
     def _write_string_table(self, stream: typing.BinaryIO, table: typing.Dict[str, int]):
         base = stream.tell()
-        stream.write(self._u8(0xc2))
+        stream.write(self._u8(NodeType.STRING_TABLE))
         stream.write(self._u24(len(table)))
         offset_writers: typing.List[_PlaceholderOffsetWriter] = []
         for i in range(len(table)):
@@ -259,7 +274,7 @@ class Writer:
         nonvalue_nodes: typing.List[typing.Tuple[typing.Any, _PlaceholderOffsetWriter]] = []
 
         if isinstance(data, list):
-            stream.write(self._u8(0xc0))
+            stream.write(self._u8(NodeType.ARRAY))
             stream.write(self._u24(len(data)))
             for item in data:
                 stream.write(self._u8(self._to_byml_type(item)))
@@ -270,7 +285,7 @@ class Writer:
                 else:
                     nonvalue_nodes.append((item, self._write_placeholder_offset(stream)))
         elif isinstance(data, dict):
-            stream.write(self._u8(0xc1))
+            stream.write(self._u8(NodeType.HASH))
             stream.write(self._u24(len(data)))
             for (key, value) in data.items():
                 stream.write(self._u24(self._hash_key_table[key]))
@@ -291,24 +306,23 @@ class Writer:
             offset_writer.write_current_offset()
             self._write_nonvalue_node(stream, data)
 
-    def _to_byml_type(self, data) -> int:
+    def _to_byml_type(self, data) -> NodeType:
         if isinstance(data, str):
-            return 0xa0
+            return NodeType.STRING
         if isinstance(data, list):
-            return 0xc0
+            return NodeType.ARRAY
         if isinstance(data, dict):
-            return 0xc1
+            return NodeType.HASH
         if isinstance(data, bool):
-            return 0xd0
+            return NodeType.BOOL
         if isinstance(data, int):
             size = data.bit_length()
             if size <= 32:
-                return 0xd1 if data < 0 else 0xd3
+                return NodeType.INT if data < 0 else NodeType.UINT
             if size <= 64:
-                return 0xd4 if data < 0 else 0xd5
+                return NodeType.INT64 if data < 0 else NodeType.UINT64
         if isinstance(data, float):
-            # Just use float (0xd2) if the value fits in a float. Otherwise, use double (0xd6).
-            return 0xd2 if _is_float(data) else 0xd6
+            return NodeType.FLOAT if _is_float(data) else NodeType.DOUBLE
         raise ValueError("Invalid value type")
 
     def _to_byml_value(self, value) -> bytes:
