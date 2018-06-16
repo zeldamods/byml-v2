@@ -19,18 +19,19 @@ def strip_literal_suffix(node):
     node.value = node.value.replace('l', '')
     return node
 
-yaml.add_constructor(u'tag:yaml.org,2002:int', lambda l, node: byml.Int(l.construct_yaml_int(node)))
-yaml.add_constructor(u'tag:yaml.org,2002:float', lambda l, node: byml.Float(l.construct_yaml_float(node)))
-yaml.add_constructor(u'!u32', lambda l, node: byml.UInt(l.construct_yaml_int(strip_literal_suffix(node))))
-yaml.add_implicit_resolver(u'!u32', re.compile(r'^-?\d+u$', re.X))
-yaml.add_constructor(u'!s64', lambda l, node: byml.Int64(l.construct_yaml_int(strip_literal_suffix(node))))
-yaml.add_implicit_resolver(u'!s64', re.compile(r'^-?\d+l$', re.X))
-yaml.add_constructor(u'!u64', lambda l, node: byml.UInt64(l.construct_yaml_int(strip_literal_suffix(node))))
-yaml.add_implicit_resolver(u'!u64', re.compile(r'^-?\d+ul$', re.X))
-yaml.add_constructor(u'!f64', lambda l, node: byml.Double(l.construct_yaml_float(node)))
+loader = yaml.CLoader
+yaml.add_constructor(u'tag:yaml.org,2002:int', lambda l, node: byml.Int(l.construct_yaml_int(node)), Loader=loader)
+yaml.add_constructor(u'tag:yaml.org,2002:float', lambda l, node: byml.Float(l.construct_yaml_float(node)), Loader=loader)
+yaml.add_constructor(u'!u32', lambda l, node: byml.UInt(l.construct_yaml_int(strip_literal_suffix(node))), Loader=loader)
+yaml.add_implicit_resolver(u'!u32', re.compile(r'^-?\d+u$', re.X), Loader=loader)
+yaml.add_constructor(u'!s64', lambda l, node: byml.Int64(l.construct_yaml_int(strip_literal_suffix(node))), Loader=loader)
+yaml.add_implicit_resolver(u'!s64', re.compile(r'^-?\d+l$', re.X), Loader=loader)
+yaml.add_constructor(u'!u64', lambda l, node: byml.UInt64(l.construct_yaml_int(strip_literal_suffix(node))), Loader=loader)
+yaml.add_implicit_resolver(u'!u64', re.compile(r'^-?\d+ul$', re.X), Loader=loader)
+yaml.add_constructor(u'!f64', lambda l, node: byml.Double(l.construct_yaml_float(node)), Loader=loader)
 
 with args.yml as file:
-    root = yaml.load(file)
+    root = yaml.load(file, Loader=loader)
     buf = io.BytesIO()
     byml.Writer(root, be=args.be, version=args.version).write(buf)
     buf.seek(0)
