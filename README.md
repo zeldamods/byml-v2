@@ -17,12 +17,18 @@ byml_to_yml.py   PATH_TO_BYML
 yml_to_byml.py   PATH_TO_YAML
 ```
 
-Output will be sent to stdout and can be piped into a file.
+Output will be sent to stdout and can be piped into a file. Pass `-` as the path to read from stdin.
 
-Pass `-` as the path to read from stdin. This can be combined with wszst to read sbyml files easily:
+#### Example: Reading a sbyml file
+byml_to_yml can be combined with wszst to read sbyml files easily:
 
 ```
 wszst de $BOTW_ROM/Pack/Bootup/Ecosystem/LevelSensor.sbyml -d- | byml_to_yml.py -
+```
+
+#### Example: Converting a yml back to byml and re-compressing it
+```
+yml_to_byml.py $BOTW_ROM/Pack/Bootup/Ecosystem/LevelSensor.yml | wszst com - -d- > $BOTW_ROM/Pack/Bootup/Ecosystem/LevelSensor.sbyml
 ```
 
 ### Library
