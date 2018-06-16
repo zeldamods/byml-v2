@@ -6,8 +6,8 @@ Features:
 *The Legend of Zelda: Breath of the Wild* and *Super Mario Odyssey*.
 * **Supports 64-bit node types** which are used in *Super Mario Odyssey*.
 * **Supports both endianness**. The little-endian format is used on the Switch.
-* **Cross platform**. And not as an afterthought.
-* **Easy to edit and readable output**. No ugly XML and type information. Types will be automagically chosen just like Nintendo's own converter.
+* **Cross platform**.
+* **Easy to edit and readable output**. No ugly XML. Unobtrusive type information.
 
 ### Usage
 
@@ -36,3 +36,23 @@ document = parser.parse()
 writer = byml.Writer(document, be=big_endian_mode, version=byml_version)
 writer.write(writable_seekable_stream)
 ```
+
+### Note about YAML integers/floats
+
+The initial version of this library supported automatic type detection.
+
+However, the problem with automatic type detection is that Nintendo sometimes
+uses signed integers even when it makes no sense and their byml
+library will only look for int nodes. Other times they will use
+uints for the same data type (crc32 hashes).
+
+It's totally unpredictable.
+
+So we need to keep type information when dumping/loading files
+instead of guessing types.
+
+To keep YAML output easy to read and write, I chose to add
+two literal suffixes (just like in C++).
+
+* Unsigned integers will get a 'u' suffix.
+* 64 bit types will additionally get a 'l'.
