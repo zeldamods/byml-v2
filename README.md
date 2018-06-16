@@ -57,8 +57,8 @@ It's totally unpredictable.
 So we need to keep type information when dumping/loading files
 instead of guessing types.
 
-To keep YAML output easy to read and write, I chose to add
-two literal suffixes (just like in C++).
+To keep YAML output easy to read and write, the converter scripts will use
+prefixes to indicate types for literals:
 
-* Unsigned integers will get a 'u' suffix.
+* Unsigned integers will get a 'u' prefix.
 * 64 bit types will additionally get a 'l'.
