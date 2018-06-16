@@ -192,11 +192,23 @@ class _PlaceholderOffsetWriter:
         self._parent = parent
     def write_placeholder(self) -> None:
         self._stream.write(self._parent._u32(0xffffffff))
-    def write_current_offset(self, base: int = 0) -> None:
+    def write_offset(self, offset: int, base: int = 0) -> None:
         current_offset = self._stream.tell()
         self._stream.seek(self._offset)
-        self._stream.write(self._parent._u32(current_offset - base))
+        self._stream.write(self._parent._u32(offset - base))
         self._stream.seek(current_offset)
+    def write_current_offset(self, base: int = 0) -> None:
+        self.write_offset(self._stream.tell(), base)
+
+_NodeToOffsetMap = typing.Dict[typing.Tuple[NodeType, int], int]
+def _hash(o):
+    def _freeze(o):
+        if isinstance(o, dict):
+            return frozenset({ k: _freeze(v) for k,v in o.items()}.items())
+        if isinstance(o, list):
+            return tuple([_freeze(v) for v in o])
+        return o
+    return hash(_freeze(o))
 
 class Writer:
     """BYMLv2 writer."""
@@ -249,7 +261,10 @@ class Writer:
 
         # Root node
         root_node_offset_writer.write_current_offset()
-        self._write_nonvalue_node(stream, self._data)
+        # Nintendo attempts to minimize document size by reusing nodes where possible.
+        # Let us do so too.
+        node_to_offset_map: _NodeToOffsetMap = dict()
+        self._write_nonvalue_node(stream, self._data, node_to_offset_map)
         stream.seek(_align_up(stream.tell(), 4))
 
     def _make_string_table(self, data, hash_key_table: SortedDict, string_table: SortedDict):
@@ -283,7 +298,7 @@ class Writer:
             stream.write(_NUL_CHAR)
         last_offset_writer.write_current_offset(base)
 
-    def _write_nonvalue_node(self, stream: typing.BinaryIO, data) -> None:
+    def _write_nonvalue_node(self, stream: typing.BinaryIO, data, node_to_offset_map) -> None:
         nonvalue_nodes: typing.List[typing.Tuple[typing.Any, _PlaceholderOffsetWriter]] = []
 
         if isinstance(data, list):
@@ -321,8 +336,13 @@ class Writer:
             raise ValueError("Invalid non-value type")
 
         for (data, offset_writer) in nonvalue_nodes:
-            offset_writer.write_current_offset()
-            self._write_nonvalue_node(stream, data)
+            node = (self._to_byml_type(data), _hash(data))
+            if node in node_to_offset_map:
+                offset_writer.write_offset(node_to_offset_map[node])
+            else:
+                offset_writer.write_current_offset()
+                node_to_offset_map[node] = stream.tell()
+                self._write_nonvalue_node(stream, data, node_to_offset_map)
 
     def _to_byml_type(self, data) -> NodeType:
         if isinstance(data, str):
