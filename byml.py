@@ -225,19 +225,27 @@ class Writer:
         # Header
         stream.write(b'BY' if self._be else b'YB')
         stream.write(self._u16(self._version))
-        hash_key_table_offset_writer = self._write_placeholder_offset(stream)
-        string_table_offset_writer = self._write_placeholder_offset(stream)
+        if self._hash_key_table:
+            hash_key_table_offset_writer = self._write_placeholder_offset(stream)
+        else:
+            stream.write(self._u32(0))
+        if self._string_table:
+            string_table_offset_writer = self._write_placeholder_offset(stream)
+        else:
+            stream.write(self._u32(0))
         root_node_offset_writer = self._write_placeholder_offset(stream)
 
         # Hash key table
-        hash_key_table_offset_writer.write_current_offset()
-        self._write_string_table(stream, self._hash_key_table)
-        stream.seek(_align_up(stream.tell(), 4))
+        if self._hash_key_table:
+            hash_key_table_offset_writer.write_current_offset()
+            self._write_string_table(stream, self._hash_key_table)
+            stream.seek(_align_up(stream.tell(), 4))
 
         # String table
-        string_table_offset_writer.write_current_offset()
-        self._write_string_table(stream, self._string_table)
-        stream.seek(_align_up(stream.tell(), 4))
+        if self._string_table:
+            string_table_offset_writer.write_current_offset()
+            self._write_string_table(stream, self._string_table)
+            stream.seek(_align_up(stream.tell(), 4))
 
         # Root node
         root_node_offset_writer.write_current_offset()
