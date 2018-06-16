@@ -36,10 +36,22 @@ def _is_container_type(node_type: int) -> bool:
 def _is_value_type(node_type: NodeType) -> bool:
     return node_type == NodeType.STRING or (NodeType.BOOL <= node_type <= NodeType.UINT) or node_type == NodeType.NULL
 
-def _is_float(value: float) -> bool:
-    # If a value can be represented as a float with no loss of precision,
-    # then we assume that it is a float.
-    return ctypes.c_float(value).value == ctypes.c_double(value).value
+# Nintendo uses uint nodes for some crc32 hashes. The problem is that they seem to be using
+# uints randomly and the signed getters in their byml library will not look at uint nodes.
+# So uints will be represented by specific classes in order to not lose type information.
+# And while we are at it, let's use classes for other types to avoid unintended type conversions.
+class Int(int):
+    pass
+class Float(float):
+    pass
+class UInt(int):
+    pass
+class Int64(int):
+    pass
+class UInt64(int):
+    pass
+class Double(float):
+    pass
 
 class Byml:
     """A simple BYMLv2 parser that handles both big endian and little endian documents."""
@@ -139,23 +151,23 @@ class Byml:
     def _parse_bool_node(self, offset: int) -> bool:
         return self._parse_uint_node(offset) != 0
 
-    def _parse_int_node(self, offset: int) -> int:
-        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'i', self._data, offset)[0]
+    def _parse_int_node(self, offset: int) -> Int:
+        return Int(struct.unpack_from(_get_unpack_endian_character(self._be) + 'i', self._data, offset)[0])
 
-    def _parse_float_node(self, offset: int) -> float:
-        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'f', self._data, offset)[0]
+    def _parse_float_node(self, offset: int) -> Float:
+        return Float(struct.unpack_from(_get_unpack_endian_character(self._be) + 'f', self._data, offset)[0])
 
-    def _parse_uint_node(self, offset: int) -> int:
-        return self._read_u32(offset)
+    def _parse_uint_node(self, offset: int) -> UInt:
+        return UInt(self._read_u32(offset))
 
-    def _parse_int64_node(self, offset: int) -> int:
-        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'q', self._data, offset)[0]
+    def _parse_int64_node(self, offset: int) -> Int64:
+        return Int64(struct.unpack_from(_get_unpack_endian_character(self._be) + 'q', self._data, offset)[0])
 
-    def _parse_uint64_node(self, offset: int) -> int:
-        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'Q', self._data, offset)[0]
+    def _parse_uint64_node(self, offset: int) -> UInt64:
+        return UInt64(struct.unpack_from(_get_unpack_endian_character(self._be) + 'Q', self._data, offset)[0])
 
-    def _parse_double_node(self, offset: int) -> float:
-        return struct.unpack_from(_get_unpack_endian_character(self._be) + 'd', self._data, offset)[0]
+    def _parse_double_node(self, offset: int) -> Double:
+        return Double(struct.unpack_from(_get_unpack_endian_character(self._be) + 'd', self._data, offset)[0])
 
     def _read_u16(self, offset: int) -> int:
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'H', self._data, offset)[0]
@@ -288,10 +300,15 @@ class Writer:
                     stream.write(self._to_byml_value(value))
                 else:
                     nonvalue_nodes.append((value, self._write_placeholder_offset(stream)))
-        elif isinstance(data, int) and 32 < data.bit_length() <= 64:
-            stream.write(self._s64(data) if data < 0 else self._u64(data))
-        elif isinstance(data, float) and not _is_float(data):
+        elif isinstance(data, UInt64):
+            stream.write(self._u64(data))
+        elif isinstance(data, Int64):
+            stream.write(self._s64(data))
+        elif isinstance(data, Double):
             stream.write(self._f64(data))
+        elif isinstance(data, int) or isinstance(data, float):
+            raise ValueError("Implicit conversions from int/float are not supported -- "
+                             "please use Int/Float/UInt/Int64/UInt64/Double")
         else:
             raise ValueError("Invalid non-value type")
 
@@ -308,14 +325,21 @@ class Writer:
             return NodeType.HASH
         if isinstance(data, bool):
             return NodeType.BOOL
-        if isinstance(data, int):
-            size = data.bit_length()
-            if size <= 32:
-                return NodeType.INT if data < 0 else NodeType.UINT
-            if size <= 64:
-                return NodeType.INT64 if data < 0 else NodeType.UINT64
-        if isinstance(data, float):
-            return NodeType.FLOAT if _is_float(data) else NodeType.DOUBLE
+        if isinstance(data, Int):
+            return NodeType.INT
+        if isinstance(data, Float):
+            return NodeType.FLOAT
+        if isinstance(data, UInt):
+            return NodeType.UINT
+        if isinstance(data, Int64):
+            return NodeType.INT64
+        if isinstance(data, UInt64):
+            return NodeType.UINT64
+        if isinstance(data, Double):
+            return NodeType.DOUBLE
+        if isinstance(data, int) or isinstance(data, float):
+            raise ValueError("Implicit conversions from int/float are not supported -- "
+                             "please use Int/Float/UInt/Int64/UInt64/Double")
         raise ValueError("Invalid value type")
 
     def _to_byml_value(self, value) -> bytes:
@@ -323,10 +347,11 @@ class Writer:
             return self._u32(self._string_table[value])
         if isinstance(value, bool):
             return self._u32(1 if value != 0 else 0)
-        if isinstance(value, int):
-            if value.bit_length() <= 32:
-                return self._s32(value) if value < 0 else self._u32(value)
-        if isinstance(value, float) and _is_float(value):
+        if isinstance(value, Int):
+            return self._s32(value)
+        if isinstance(value, UInt):
+            return self._u32(value)
+        if isinstance(value, Float):
             return self._f32(value)
         raise ValueError("Invalid value type")
 
