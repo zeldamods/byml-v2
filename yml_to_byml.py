@@ -14,7 +14,7 @@ parser.add_argument('-V', '--version', default=2, help='BYML version (1, 2, 3)')
 parser.add_argument('-b', '--be', action='store_true', help='Use big endian. Defaults to false.')
 args = parser.parse_args()
 
-loader = yaml.CLoader
+loader = yaml.CSafeLoader
 yaml.add_constructor(u'tag:yaml.org,2002:int', lambda l, node: byml.Int(l.construct_yaml_int(node)), Loader=loader)
 yaml.add_constructor(u'tag:yaml.org,2002:float', lambda l, node: byml.Float(l.construct_yaml_float(node)), Loader=loader)
 yaml.add_constructor(u'!u', lambda l, node: byml.UInt(l.construct_yaml_int(node)), Loader=loader)
