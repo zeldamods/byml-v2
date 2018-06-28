@@ -6,13 +6,20 @@
 
 - [Python 3.6](https://www.python.org/downloads/release/python-360/)
 - [wszst](https://szs.wiimm.de/download.html#os-cygwin) (in system path, or in a directory that is called 'wszst/' and put next to the converter scripts)
+- Modules: sortedcontainers, PyYAML
+
+## First use (Windows)
+
+* Extract the release 7z
+* Install sortedcontainers: `pip install sortedcontainers`
+* Install PyYAML: run `pip install PyYAML-3.12-cp36-cp36m-win_amd64.whl`
 
 ## BYML to YAML
 
 Just run the byml_to_yml script:
 
 ```shell
-python3 byml_to_yml  PATH_TO_BYML    PATH_TO_YAML
+python byml_to_yml  PATH_TO_BYML    PATH_TO_YAML
 ```
 
 **If the byml is compressed, this tool will automatically decompress them.**
@@ -24,7 +31,7 @@ Example: to convert to YAML in the same directory as the BYML, use `byml_to_yml 
 ## YAML to BYML
 
 ```shell
-python3 yml_to_byml  PATH_TO_YAML    PATH_TO_BYML
+python yml_to_byml  PATH_TO_YAML    PATH_TO_BYML
 ```
 
 **Add `-b` at the end if big endian should be used. For the Wii U version of Breath of the Wild,
