@@ -8,6 +8,7 @@ import sys
 import yaml
 
 import byml
+import yaz0_util
 
 parser = argparse.ArgumentParser(description='Converts a YAML file to BYML.')
 parser.add_argument('yml', help='Path to a YAML file', nargs='?', default='-')
@@ -36,6 +37,14 @@ with file:
     elif '!!' in args.byml:
         sys.stderr.write('error: cannot use !! (for input filename) when reading from stdin\n')
         sys.exit(1)
+
+    if args.byml != '-':
+        extension = os.path.splitext(args.byml)[1]
+        if extension.startswith('.s'):
+            sys.stderr.write('compressing sbyml\n')
+            buf = io.BytesIO(yaz0_util.compress(buf.read()))
+
+    sys.stderr.write('writing to %s\n' % args.byml)
     output = sys.stdout.buffer if args.byml == '-' else open(args.byml, 'wb')
     with output:
         shutil.copyfileobj(buf, output)
