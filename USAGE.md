@@ -1,6 +1,6 @@
 # Usage
 
-[Releases with everything you need can be found here](https://github.com/leoetlino/byml-v2/releases) for Windows users.
+[Releases with a bundled wszst can be found here](https://github.com/leoetlino/byml-v2/releases) for Windows users.
 
 ## Dependencies
 
