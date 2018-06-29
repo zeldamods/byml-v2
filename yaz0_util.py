@@ -5,8 +5,8 @@ _tool_name = 'wszst' if os.name != 'nt' else 'wszst/wszst.exe'
 
 def compress(data: bytes) -> bytes:
     return subprocess.run([_tool_name, "comp", "-", "-d-", "-C10"], input=data, stdout=subprocess.PIPE,
-        check=True).stdout
+        stderr=subprocess.PIPE, check=True).stdout
 
 def decompress(data: bytes) -> bytes:
     return subprocess.run([_tool_name, "de", "-", "-d-"], input=data, stdout=subprocess.PIPE,
-        check=True).stdout
+        stderr=subprocess.PIPE, check=True).stdout

@@ -33,7 +33,6 @@ with file:
     elif '!!' in args.yml:
         sys.stderr.write('error: cannot use !! (for input filename) when reading from stdin\n')
         sys.exit(1)
-    sys.stderr.write('writing to %s\n' % args.yml)
     output = sys.stdout if args.yml == '-' else open(args.yml, 'w')
     with output:
         yaml.dump(root, output, Dumper=dumper, allow_unicode=True)
