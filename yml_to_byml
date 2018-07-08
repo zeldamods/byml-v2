@@ -25,7 +25,7 @@ yaml.add_constructor(u'!l', lambda l, node: byml.Int64(l.construct_yaml_int(node
 yaml.add_constructor(u'!ul', lambda l, node: byml.UInt64(l.construct_yaml_int(node)), Loader=loader)
 yaml.add_constructor(u'!f64', lambda l, node: byml.Double(l.construct_yaml_float(node)), Loader=loader)
 
-file = sys.stdin if args.yml == '-' else open(args.yml, 'r')
+file = sys.stdin if args.yml == '-' else open(args.yml, 'r', encoding='utf-8')
 with file:
     root = yaml.load(file, Loader=loader)
     buf = io.BytesIO()
