@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-_tool_name = 'wszst' if os.name != 'nt' else 'wszst/wszst.exe'
+_tool_name = 'wszst' if os.name != 'nt' else 'wszst.exe'
 
 def compress(data: bytes) -> bytes:
     return subprocess.run([_tool_name, "comp", "-", "-d-", "-C10"], input=data, stdout=subprocess.PIPE,
