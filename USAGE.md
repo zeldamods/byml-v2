@@ -1,18 +1,15 @@
 # Usage
 
-[Releases with a bundled wszst can be found here](https://github.com/leoetlino/byml-v2/releases) for Windows users.
-
 ## Dependencies
 
-- [Python 3.6](https://www.python.org/downloads/release/python-360/)
-- [wszst](https://szs.wiimm.de/download.html#os-cygwin) (in system path, or in a directory that is called 'wszst/' and put next to the converter scripts)
+- [Python 3.6+](https://www.python.org/downloads/release/python-370/)
+- [wszst](https://szs.wiimm.de/download.html#os-cygwin)
 - Modules: sortedcontainers, PyYAML
 
 ## First use (Windows)
 
-* Extract the release 7z
-* Install sortedcontainers: `pip install sortedcontainers`
-* Install PyYAML: run `pip install PyYAML-3.12-cp36-cp36m-win_amd64.whl`
+* Install wszst
+* Install dependencies: `pip install sortedcontainers pyyaml`
 
 ## BYML to YAML
 
