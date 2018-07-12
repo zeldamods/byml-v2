@@ -76,7 +76,8 @@ class Byml:
         self._hash_key_table_offset = self._read_u32(4)
         self._string_table_offset = self._read_u32(8)
 
-        self._hash_key_table = self._parse_string_table(self._hash_key_table_offset)
+        if self._hash_key_table_offset != 0:
+            self._hash_key_table = self._parse_string_table(self._hash_key_table_offset)
         if self._string_table_offset != 0:
             self._string_table = self._parse_string_table(self._string_table_offset)
 
