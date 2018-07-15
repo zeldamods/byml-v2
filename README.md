@@ -12,7 +12,6 @@ Features:
 ### Quick usage
 
 ```shell
-byml_to_json  PATH_TO_BYML
 byml_to_yml   PATH_TO_BYML
 yml_to_byml   PATH_TO_YAML
 ```
