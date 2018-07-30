@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
 # Copyright 2018 leoetlino <leo@leolam.fr>
 # Licensed under MIT
-
 from enum import IntEnum
-import ctypes
 from sortedcontainers import SortedDict # type: ignore
 import struct
 import typing
