@@ -49,3 +49,7 @@ prefixes to indicate types for literals:
 
 * Unsigned integers will get a 'u' prefix.
 * 64 bit types will additionally get a 'l'.
+
+### License
+
+This software is licensed under the terms of the GNU General Public License, version 2 or later.

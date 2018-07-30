@@ -1,5 +1,5 @@
 # Copyright 2018 leoetlino <leo@leolam.fr>
-# Licensed under MIT
+# Licensed under GPLv2+
 from enum import IntEnum
 from sortedcontainers import SortedDict # type: ignore
 import struct

@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/leoetlino/byml-v2",
     packages=setuptools.find_packages(),
     classifiers=[
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3 :: Only",
         "Topic :: Software Development :: Libraries",
