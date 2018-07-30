@@ -8,7 +8,7 @@ import sys
 import yaml
 
 from . import byml
-from . import yaz0_util
+import wszst_yaz0
 
 def byml_to_yml() -> None:
     parser = argparse.ArgumentParser(description='Converts a BYML file to YAML.')
@@ -28,7 +28,7 @@ def byml_to_yml() -> None:
     with file:
         data = file.read()
         if data[0:4] == b'Yaz0':
-            data = yaz0_util.decompress(data)
+            data = wszst_yaz0.decompress(data)
         root = byml.Byml(data).parse()
 
         if args.byml != '-':
@@ -72,7 +72,7 @@ def yml_to_byml() -> None:
         if args.byml != '-':
             extension = os.path.splitext(args.byml)[1]
             if extension.startswith('.s'):
-                buf = io.BytesIO(yaz0_util.compress(buf.read()))
+                buf = io.BytesIO(wszst_yaz0.compress(buf.read()))
 
         output = sys.stdout.buffer if args.byml == '-' else open(args.byml, 'wb')
         with output:
