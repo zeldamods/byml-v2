@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="byml",
-    version="2.0.0-2",
+    version="2.0.0-3",
     author="leoetlino",
     author_email="leo@leolam.fr",
     description="A simple Nintendo BYML or BYAML v2/v3 parser and writer",
