@@ -36,9 +36,9 @@ def byml_to_yml() -> None:
         elif '!!' in args.yml:
             sys.stderr.write('error: cannot use !! (for input filename) when reading from stdin\n')
             sys.exit(1)
-        output = sys.stdout if args.yml == '-' else open(args.yml, 'w')
+        output = sys.stdout if args.yml == '-' else open(args.yml, 'w', encoding='utf-8')
         with output:
-            yaml.dump(root, output, Dumper=dumper, allow_unicode=True)
+            yaml.dump(root, output, Dumper=dumper, allow_unicode=True, encoding='utf-8')
 
 def yml_to_byml() -> None:
     parser = argparse.ArgumentParser(description='Converts a YAML file to BYML.')
