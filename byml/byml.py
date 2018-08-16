@@ -78,9 +78,13 @@ class Byml:
         if self._string_table_offset != 0:
             self._string_table = self._parse_string_table(self._string_table_offset)
 
-    def parse(self) -> typing.Union[list, dict]:
+    def parse(self) -> typing.Union[list, dict, None]:
         """Parse the BYML and get the root node with all children."""
-        node_type = self._data[self._read_u32(12)]
+        root_node_offset = self._read_u32(12)
+        if root_node_offset == 0:
+            return None
+
+        node_type = self._data[root_node_offset]
         if not _is_container_type(node_type):
             raise ValueError("Invalid root node: expected array or dict, got type 0x%x" % node_type)
         return self._parse_node(node_type, 12)
