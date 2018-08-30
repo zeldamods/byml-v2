@@ -11,14 +11,49 @@ Features:
 
 ### Quick usage
 
+Install Python 3.6+, then run `pip install byml`.
+
+### BYML to YAML
+
 ```shell
-byml_to_yml   PATH_TO_BYML
-yml_to_byml   PATH_TO_YAML
+byml_to_yml  PATH_TO_BYML    PATH_TO_YAML
 ```
 
-Output will be sent to stdout and can be piped into a file. Pass `-` as the path to read from stdin.
+**If the byml is compressed, this tool will automatically decompress them.**
 
-### Library
+To reuse the input file name and only change the extension, use `!!.NEW_EXTENSION` as the second argument.
+
+Example: to convert to YAML in the same directory as the BYML, use `byml_to_yml path_to_botw/Actor/ActorInfo.product.sbyml !!.yml`
+
+### YAML to BYML
+
+```shell
+yml_to_byml  PATH_TO_YAML    PATH_TO_BYML
+```
+
+**Add `-b` at the end if big endian should be used. For the Wii U version of Breath of the Wild,
+you must pass that flag.**
+
+To reuse the input file name and only change the extension, use `!!.NEW_EXTENSION` as the second argument.
+
+If the target file extension starts with `.s`, the tool will **automatically compress**
+the BYML using yaz0.
+
+### Note about YAML integers/floats
+
+* `!u` before an integer indicates that the value is unsigned. **In general, you should keep
+the signedness unchanged.**
+
+* `!l` is for signed 64 bit values. (Not used in BotW.)
+* `!ul` is for unsigned 64 bit values. (Not used in BotW.)
+* `!f64` is for binary64 floating point values. (Not used in BotW.)
+
+### Advanced usage
+
+By default, if the destination argument is not specified, output will be sent to stdout,
+which is handy for looking at bymls without creating temporary files.
+
+### Library usage
 
 ```python
 import byml
@@ -29,26 +64,6 @@ document = parser.parse()
 writer = byml.Writer(document, be=big_endian_mode, version=byml_version)
 writer.write(writable_seekable_stream)
 ```
-
-### Note about YAML integers/floats
-
-The initial version of this library supported automatic type detection.
-
-However, the problem with automatic type detection is that Nintendo sometimes
-uses signed integers even when it makes no sense and their byml
-library will only look for int nodes. Other times they will use
-uints for the same data type (crc32 hashes).
-
-It's totally unpredictable.
-
-So we need to keep type information when dumping/loading files
-instead of guessing types.
-
-To keep YAML output easy to read and write, the converter scripts will use
-prefixes to indicate types for literals:
-
-* Unsigned integers will get a 'u' prefix.
-* 64 bit types will additionally get a 'l'.
 
 ### License
 
