@@ -202,15 +202,15 @@ class _PlaceholderOffsetWriter:
     def write_current_offset(self, base: int = 0) -> None:
         self.write_offset(self._stream.tell(), base)
 
-_NodeToOffsetMap = typing.Dict[typing.Tuple[NodeType, int], int]
-def _hash(o):
+_NodeToOffsetMap = typing.Dict[typing.Tuple[NodeType, typing.Any], int]
+def _freeze_object(o):
     def _freeze(o):
         if isinstance(o, dict):
             return frozenset({ k: _freeze(v) for k,v in o.items()}.items())
         if isinstance(o, list):
             return tuple([_freeze(v) for v in o])
         return o
-    return hash(_freeze(o))
+    return _freeze(o)
 
 class Writer:
     """BYMLv2 writer."""
@@ -338,7 +338,7 @@ class Writer:
             raise ValueError("Invalid non-value type")
 
         for (data, offset_writer) in nonvalue_nodes:
-            node = (self._to_byml_type(data), _hash(data))
+            node = (self._to_byml_type(data), _freeze_object(data))
             if node in node_to_offset_map:
                 offset_writer.write_offset(node_to_offset_map[node])
             else:
