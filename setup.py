@@ -1,11 +1,13 @@
 import setuptools
+import versioneer
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="byml",
-    version="2.0.3",
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author="leoetlino",
     author_email="leo@leolam.fr",
     description="A simple Nintendo BYML or BYAML v2/v3 parser and writer",
