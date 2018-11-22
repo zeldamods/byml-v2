@@ -367,6 +367,8 @@ class Writer:
             return NodeType.UINT64
         if isinstance(data, Double):
             return NodeType.DOUBLE
+        if data is None:
+            return NodeType.NULL
         if isinstance(data, int) or isinstance(data, float):
             raise ValueError("Implicit conversions from int/float are not supported -- "
                              "please use Int/Float/UInt/Int64/UInt64/Double")
@@ -383,6 +385,8 @@ class Writer:
             return self._u32(value)
         if isinstance(value, Float):
             return self._f32(value)
+        if value is None:
+            return self._u32(0)
         raise ValueError("Invalid value type")
 
     def _write_placeholder_offset(self, stream) -> _PlaceholderOffsetWriter:
