@@ -8,6 +8,7 @@ import sys
 import yaml
 
 from . import byml
+from . import yaml_util
 import wszst_yaz0
 
 def byml_to_yml() -> None:
@@ -49,12 +50,7 @@ def yml_to_byml() -> None:
     args = parser.parse_args()
 
     loader = yaml.CSafeLoader
-    yaml.add_constructor(u'tag:yaml.org,2002:int', lambda l, node: byml.Int(l.construct_yaml_int(node)), Loader=loader)
-    yaml.add_constructor(u'tag:yaml.org,2002:float', lambda l, node: byml.Float(l.construct_yaml_float(node)), Loader=loader)
-    yaml.add_constructor(u'!u', lambda l, node: byml.UInt(l.construct_yaml_int(node)), Loader=loader)
-    yaml.add_constructor(u'!l', lambda l, node: byml.Int64(l.construct_yaml_int(node)), Loader=loader)
-    yaml.add_constructor(u'!ul', lambda l, node: byml.UInt64(l.construct_yaml_int(node)), Loader=loader)
-    yaml.add_constructor(u'!f64', lambda l, node: byml.Double(l.construct_yaml_float(node)), Loader=loader)
+    yaml_util.add_constructors(loader)
 
     file = sys.stdin if args.yml == '-' else open(args.yml, 'r', encoding='utf-8')
     with file:
