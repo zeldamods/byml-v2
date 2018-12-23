@@ -25,8 +25,8 @@ setuptools.setup(
     install_requires=['PyYAML~=3.12', 'sortedcontainers~=2.0', 'wszst_yaz0~=1.0'],
     entry_points = {
         'console_scripts': [
-            'byml_to_yml = byml.__main__:byml_to_yml',
-            'yml_to_byml = byml.__main__:yml_to_byml'
+            'byml_to_yml = byml.byml_to_yml:main',
+            'yml_to_byml = byml.yml_to_byml:main'
         ]
     },
 )
