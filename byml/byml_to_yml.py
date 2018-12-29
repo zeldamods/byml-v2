@@ -5,6 +5,7 @@ import yaml
 
 from . import byml
 import wszst_yaz0
+from . import yaml_util
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Converts a BYML file to YAML.')
@@ -13,12 +14,7 @@ def main() -> None:
     args = parser.parse_args()
 
     dumper = yaml.CDumper
-    yaml.add_representer(byml.Int, lambda d, data: d.represent_int(data), Dumper=dumper)
-    yaml.add_representer(byml.Float, lambda d, data: d.represent_float(data), Dumper=dumper)
-    yaml.add_representer(byml.UInt, lambda d, data: d.represent_scalar(u'!u', '0x%08x' % data), Dumper=dumper)
-    yaml.add_representer(byml.Int64, lambda d, data: d.represent_scalar(u'!l', str(data)), Dumper=dumper)
-    yaml.add_representer(byml.UInt64, lambda d, data: d.represent_scalar(u'!ul', str(data)), Dumper=dumper)
-    yaml.add_representer(byml.Double, lambda d, data: d.represent_scalar(u'!f64', str(data)), Dumper=dumper)
+    yaml_util.add_representers(dumper)
 
     file = sys.stdin.buffer if args.byml == '-' else open(args.byml, 'rb')
     with file:
