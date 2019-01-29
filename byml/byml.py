@@ -22,16 +22,16 @@ class NodeType(IntEnum):
 
 _NUL_CHAR = b'\x00'
 
-def _get_unpack_endian_character(big_endian: bool):
+def _get_unpack_endian_character(big_endian      ):
     return '>' if big_endian else '<'
 
-def _align_up(value: int, size: int) -> int:
+def _align_up(value     , size     )       :
     return value + (size - value % size) % size
 
-def _is_container_type(node_type: int) -> bool:
+def _is_container_type(node_type     )        :
     return node_type == NodeType.ARRAY or node_type == NodeType.HASH
 
-def _is_value_type(node_type: NodeType) -> bool:
+def _is_value_type(node_type          )        :
     return node_type == NodeType.STRING or (NodeType.BOOL <= node_type <= NodeType.UINT) or node_type == NodeType.NULL
 
 # Nintendo uses uint nodes for some crc32 hashes. The problem is that they seem to be using
@@ -54,7 +54,7 @@ class Double(float):
 class Byml:
     """A simple BYMLv2 parser that handles both big endian and little endian documents."""
 
-    def __init__(self, data: bytes) -> None:
+    def __init__(self, data       )        :
         self._data = data
 
         magic = self._data[0:2]
@@ -79,7 +79,7 @@ class Byml:
         if self._string_table_offset != 0:
             self._string_table = self._parse_string_table(self._string_table_offset)
 
-    def parse(self) -> typing.Union[list, OrderedDict, None]:
+    def parse(self)                                         :
         """Parse the BYML and get the root node with all children."""
         root_node_offset = self._read_u32(12)
         if root_node_offset == 0:
@@ -90,7 +90,7 @@ class Byml:
             raise ValueError("Invalid root node: expected array or dict, got type 0x%x" % node_type)
         return self._parse_node(node_type, 12)
 
-    def _parse_string_table(self, offset) -> typing.List[str]:
+    def _parse_string_table(self, offset)                    :
         if self._data[offset] != NodeType.STRING_TABLE:
             raise ValueError("Invalid node type: 0x%x (expected 0xc2)" % self._data[offset])
 
@@ -101,7 +101,7 @@ class Byml:
             array.append(self._read_string(string_offset))
         return array
 
-    def _parse_node(self, node_type: int, offset: int):
+    def _parse_node(self, node_type     , offset     ):
         if node_type == NodeType.STRING:
             return self._parse_string_node(self._read_u32(offset))
         if node_type == NodeType.ARRAY:
@@ -126,81 +126,81 @@ class Byml:
             return None
         raise ValueError("Unknown node type: 0x%x" % node_type)
 
-    def _parse_string_node(self, index: int) -> str:
+    def _parse_string_node(self, index     )       :
         return self._string_table[index]
 
-    def _parse_array_node(self, offset: int) -> list:
+    def _parse_array_node(self, offset     )        :
         size = self._read_u24(offset + 1)
-        array: list = list()
-        value_array_offset: int = offset + _align_up(size, 4) + 4
+        array       = list()
+        value_array_offset      = offset + _align_up(size, 4) + 4
         for i in range(size):
             node_type = self._data[offset + 4 + i]
             array.append(self._parse_node(node_type, value_array_offset + 4*i))
         return array
 
-    def _parse_hash_node(self, offset: int) -> OrderedDict:
+    def _parse_hash_node(self, offset     )               :
         size = self._read_u24(offset + 1)
-        result: OrderedDict = OrderedDict()
+        result              = OrderedDict()
         for i in range(size):
-            entry_offset: int = offset + 4 + 8*i
-            string_index: int = self._read_u24(entry_offset + 0)
-            name: str = self._hash_key_table[string_index]
+            entry_offset      = offset + 4 + 8*i
+            string_index      = self._read_u24(entry_offset + 0)
+            name      = self._hash_key_table[string_index]
 
             node_type = self._data[entry_offset + 3]
             result[name] = self._parse_node(node_type, entry_offset + 4)
 
         return result
 
-    def _parse_bool_node(self, offset: int) -> bool:
+    def _parse_bool_node(self, offset     )        :
         return self._parse_uint_node(offset) != 0
 
-    def _parse_int_node(self, offset: int) -> Int:
+    def _parse_int_node(self, offset     )       :
         return Int(struct.unpack_from(_get_unpack_endian_character(self._be) + 'i', self._data, offset)[0])
 
-    def _parse_float_node(self, offset: int) -> Float:
+    def _parse_float_node(self, offset     )         :
         return Float(struct.unpack_from(_get_unpack_endian_character(self._be) + 'f', self._data, offset)[0])
 
-    def _parse_uint_node(self, offset: int) -> UInt:
+    def _parse_uint_node(self, offset     )        :
         return UInt(self._read_u32(offset))
 
-    def _parse_int64_node(self, offset: int) -> Int64:
+    def _parse_int64_node(self, offset     )         :
         return Int64(struct.unpack_from(_get_unpack_endian_character(self._be) + 'q', self._data, offset)[0])
 
-    def _parse_uint64_node(self, offset: int) -> UInt64:
+    def _parse_uint64_node(self, offset     )          :
         return UInt64(struct.unpack_from(_get_unpack_endian_character(self._be) + 'Q', self._data, offset)[0])
 
-    def _parse_double_node(self, offset: int) -> Double:
+    def _parse_double_node(self, offset     )          :
         return Double(struct.unpack_from(_get_unpack_endian_character(self._be) + 'd', self._data, offset)[0])
 
-    def _read_u16(self, offset: int) -> int:
+    def _read_u16(self, offset     )       :
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'H', self._data, offset)[0]
 
-    def _read_u24(self, offset: int) -> int:
+    def _read_u24(self, offset     )       :
         if self._be:
             return struct.unpack('>I', _NUL_CHAR + self._data[offset:offset+3])[0]
         return struct.unpack('<I', self._data[offset:offset+3] + _NUL_CHAR)[0]
 
-    def _read_u32(self, offset: int) -> int:
+    def _read_u32(self, offset     )       :
         return struct.unpack_from(_get_unpack_endian_character(self._be) + 'I', self._data, offset)[0]
 
-    def _read_string(self, offset: int) -> str:
+    def _read_string(self, offset     )       :
         end = self._data.find(_NUL_CHAR, offset)
         return self._data[offset:end].decode('utf-8')
 
 class _PlaceholderOffsetWriter:
     """Writes a placeholder offset value that will be filled later."""
-    def __init__(self, stream: typing.BinaryIO, parent) -> None:
+    def __init__(self, stream                 , parent)        :
         self._stream = stream
         self._offset = stream.tell()
         self._parent = parent
-    def write_placeholder(self) -> None:
+    def write_placeholder(self)        :
         self._stream.write(self._parent._u32(0xffffffff))
-    def write_offset(self, offset: int, base: int = 0) -> None:
+    def write_offset(self, offset     , base      = 0)        :
         current_offset = self._stream.tell()
         self._stream.seek(self._offset)
         self._stream.write(self._parent._u32(offset - base))
         self._stream.seek(current_offset)
-    def write_current_offset(self, base: int = 0) -> None:
+    def write_current_offset(self, base      = 0)        :
         self.write_offset(self._stream.tell(), base)
 
 _NodeToOffsetMap = typing.Dict[typing.Tuple[NodeType, typing.Any], int]
@@ -216,7 +216,7 @@ def _freeze_object(o):
 class Writer:
     """BYMLv2 writer."""
 
-    def __init__(self, data: typing.Union[dict, list], be=False, version=2) -> None:
+    def __init__(self, data                          , be=False, version=2)        :
         self._data = data
         self._be = be
         self._version = version
@@ -229,14 +229,14 @@ class Writer:
         if version == 1 and be:
             raise ValueError("Invalid version: %u-wiiu (expected 1-3)" % version)
 
-        self._hash_key_table: SortedDict[str, int] = SortedDict()
-        self._string_table: SortedDict[str, int] = SortedDict()
+        self._hash_key_table                       = SortedDict()
+        self._string_table                       = SortedDict()
         self._make_string_table(self._data, self._hash_key_table, self._string_table)
         # Nintendo seems to sort entries in alphabetical order.
         self._sort_string_table(self._hash_key_table)
         self._sort_string_table(self._string_table)
 
-    def write(self, stream: typing.BinaryIO) -> None:
+    def write(self, stream                 )        :
         # Header
         stream.write(b'BY' if self._be else b'YB')
         stream.write(self._u16(self._version))
@@ -266,11 +266,11 @@ class Writer:
         root_node_offset_writer.write_current_offset()
         # Nintendo attempts to minimize document size by reusing nodes where possible.
         # Let us do so too.
-        node_to_offset_map: _NodeToOffsetMap = OrderedDict()
+        node_to_offset_map                   = OrderedDict()
         self._write_nonvalue_node(stream, self._data, node_to_offset_map)
         stream.seek(_align_up(stream.tell(), 4))
 
-    def _make_string_table(self, data, hash_key_table: SortedDict, string_table: SortedDict):
+    def _make_string_table(self, data, hash_key_table            , string_table            ):
         if isinstance(data, str) and data not in string_table:
             string_table[data] = 0xffffffff
         elif isinstance(data, list):
@@ -282,15 +282,15 @@ class Writer:
                     hash_key_table[key] = 0xffffffff
                 self._make_string_table(value, hash_key_table, string_table)
 
-    def _sort_string_table(self, table: SortedDict):
+    def _sort_string_table(self, table            ):
         for (i, key) in enumerate(table.keys()):
             table[key] = i
 
-    def _write_string_table(self, stream: typing.BinaryIO, table: typing.Dict[str, int]):
+    def _write_string_table(self, stream                 , table                       ):
         base = stream.tell()
         stream.write(self._u8(NodeType.STRING_TABLE))
         stream.write(self._u24(len(table)))
-        offset_writers: typing.List[_PlaceholderOffsetWriter] = []
+        offset_writers                                        = []
         for i in range(len(table)):
             offset_writers.append(self._write_placeholder_offset(stream))
         last_offset_writer = self._write_placeholder_offset(stream)
@@ -301,8 +301,8 @@ class Writer:
             stream.write(_NUL_CHAR)
         last_offset_writer.write_current_offset(base)
 
-    def _write_nonvalue_node(self, stream: typing.BinaryIO, data, node_to_offset_map) -> None:
-        nonvalue_nodes: typing.List[typing.Tuple[typing.Any, _PlaceholderOffsetWriter]] = []
+    def _write_nonvalue_node(self, stream                 , data, node_to_offset_map)        :
+        nonvalue_nodes                                                                  = []
 
         if isinstance(data, list):
             stream.write(self._u8(NodeType.ARRAY))
@@ -347,7 +347,7 @@ class Writer:
                 node_to_offset_map[node] = stream.tell()
                 self._write_nonvalue_node(stream, data, node_to_offset_map)
 
-    def _to_byml_type(self, data) -> NodeType:
+    def _to_byml_type(self, data)            :
         if isinstance(data, str):
             return NodeType.STRING
         if isinstance(data, list):
@@ -375,7 +375,7 @@ class Writer:
                              "please use Int/Float/UInt/Int64/UInt64/Double")
         raise ValueError("Invalid value type")
 
-    def _to_byml_value(self, value) -> bytes:
+    def _to_byml_value(self, value)         :
         if isinstance(value, str):
             return self._u32(self._string_table[value])
         if isinstance(value, bool):
@@ -390,29 +390,29 @@ class Writer:
             return self._u32(0)
         raise ValueError("Invalid value type")
 
-    def _write_placeholder_offset(self, stream) -> _PlaceholderOffsetWriter:
+    def _write_placeholder_offset(self, stream)                            :
         p = _PlaceholderOffsetWriter(stream, self)
         p.write_placeholder()
         return p
 
-    def _u8(self, value) -> bytes:
+    def _u8(self, value)         :
         return struct.pack('B', value)
-    def _u16(self, value) -> bytes:
+    def _u16(self, value)         :
         return struct.pack(_get_unpack_endian_character(self._be) + 'H', value)
-    def _s16(self, value) -> bytes:
+    def _s16(self, value)         :
         return struct.pack(_get_unpack_endian_character(self._be) + 'h', value)
-    def _u24(self, value) -> bytes:
+    def _u24(self, value)         :
         b = struct.pack(_get_unpack_endian_character(self._be) + 'I', value)
         return b[1:] if self._be else b[:-1]
-    def _u32(self, value) -> bytes:
+    def _u32(self, value)         :
         return struct.pack(_get_unpack_endian_character(self._be) + 'I', value)
-    def _s32(self, value) -> bytes:
+    def _s32(self, value)         :
         return struct.pack(_get_unpack_endian_character(self._be) + 'i', value)
-    def _u64(self, value) -> bytes:
+    def _u64(self, value)         :
         return struct.pack(_get_unpack_endian_character(self._be) + 'Q', value)
-    def _s64(self, value) -> bytes:
+    def _s64(self, value)         :
         return struct.pack(_get_unpack_endian_character(self._be) + 'q', value)
-    def _f32(self, value) -> bytes:
+    def _f32(self, value)         :
         return struct.pack(_get_unpack_endian_character(self._be) + 'f', value)
-    def _f64(self, value) -> bytes:
+    def _f64(self, value)         :
         return struct.pack(_get_unpack_endian_character(self._be) + 'd', value)

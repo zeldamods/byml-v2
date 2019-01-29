@@ -9,7 +9,7 @@ from . import byml
 import wszst_yaz0
 from . import yaml_util
 
-def main() -> None:
+def main()        :
     parser = argparse.ArgumentParser(description='Converts a YAML file to BYML.')
     parser.add_argument('yml', help='Path to a YAML file', nargs='?', default='-')
     parser.add_argument('byml', help='Path to destination BYAML file', nargs='?', default='-')

@@ -8,7 +8,7 @@ from . import byml
 import wszst_yaz0
 from . import yaml_util
 
-def main() -> None:
+def main()        :
     parser = argparse.ArgumentParser(description='Converts a BYML file to YAML.')
     parser.add_argument('-j', '--to-json', action='store_true', help='Convert to JSON (warning: one-way conversion; does not preserve type information)')
     parser.add_argument('byml', help='Path to a BYML file', nargs='?', default='-')
