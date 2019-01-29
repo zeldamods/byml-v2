@@ -1,5 +1,6 @@
 # Copyright 2018 leoetlino <leo@leolam.fr>
 # Licensed under GPLv2+
+from collections import OrderedDict
 from enum import IntEnum
 from sortedcontainers import SortedDict # type: ignore
 import struct
@@ -78,7 +79,7 @@ class Byml:
         if self._string_table_offset != 0:
             self._string_table = self._parse_string_table(self._string_table_offset)
 
-    def parse(self) -> typing.Union[list, dict, None]:
+    def parse(self) -> typing.Union[list, OrderedDict, None]:
         """Parse the BYML and get the root node with all children."""
         root_node_offset = self._read_u32(12)
         if root_node_offset == 0:
@@ -137,9 +138,9 @@ class Byml:
             array.append(self._parse_node(node_type, value_array_offset + 4*i))
         return array
 
-    def _parse_hash_node(self, offset: int) -> dict:
+    def _parse_hash_node(self, offset: int) -> OrderedDict:
         size = self._read_u24(offset + 1)
-        result: dict = dict()
+        result: OrderedDict = OrderedDict()
         for i in range(size):
             entry_offset: int = offset + 4 + 8*i
             string_index: int = self._read_u24(entry_offset + 0)
@@ -265,7 +266,7 @@ class Writer:
         root_node_offset_writer.write_current_offset()
         # Nintendo attempts to minimize document size by reusing nodes where possible.
         # Let us do so too.
-        node_to_offset_map: _NodeToOffsetMap = dict()
+        node_to_offset_map: _NodeToOffsetMap = OrderedDict()
         self._write_nonvalue_node(stream, self._data, node_to_offset_map)
         stream.seek(_align_up(stream.tell(), 4))
 
