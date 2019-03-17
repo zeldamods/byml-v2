@@ -317,7 +317,8 @@ class Writer:
         elif isinstance(data, dict):
             stream.write(self._u8(NodeType.HASH))
             stream.write(self._u24(len(data)))
-            for (key, value) in data.items():
+            for key in sorted(data.keys()):
+                value = data[key]
                 stream.write(self._u24(self._hash_key_table[key]))
                 node_type = self._to_byml_type(value)
                 stream.write(self._u8(node_type))
