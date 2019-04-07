@@ -2,6 +2,7 @@
 # Licensed under GPLv2+
 from enum import IntEnum
 from sortedcontainers import SortedDict # type: ignore
+import io
 import struct
 import typing
 
@@ -234,6 +235,11 @@ class Writer:
         # Nintendo seems to sort entries in alphabetical order.
         self._sort_string_table(self._hash_key_table)
         self._sort_string_table(self._string_table)
+
+    def get_bytes(self):
+        stream = io.BytesIO()
+        self.write(stream)
+        return stream.getvalue()
 
     def write(self, stream: typing.BinaryIO) -> None:
         # Header
