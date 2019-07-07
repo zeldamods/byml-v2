@@ -13,6 +13,8 @@ Features:
 
 Install Python 3.6+, then run `pip install byml`.
 
+The C module for PyYAML is currently a **hard dependency**. If you are on Windows, you don't have to do anything special. If you are on Linux or on macOS, you will need to install libyaml.
+
 ### BYML to YAML
 
 ```shell
