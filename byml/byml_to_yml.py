@@ -35,7 +35,7 @@ def main() -> None:
             if args.to_json:
                 json.dump(root, output, ensure_ascii=False)
             else:
-                yaml.dump(root, output, Dumper=dumper, allow_unicode=True, encoding='utf-8')
+                yaml.dump(root, output, Dumper=dumper, allow_unicode=True, encoding='utf-8', default_flow_style=None)
 
 if __name__ == '__main__':
     main()
