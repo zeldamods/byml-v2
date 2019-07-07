@@ -66,8 +66,8 @@ class Byml:
             raise ValueError("Invalid magic: %s (expected 'BY' or 'YB')" % magic)
 
         version = self._read_u16(2)
-        if not (1 <= version <= 3):
-            raise ValueError("Invalid version: %u (expected 1-3)" % version)
+        if not (1 <= version <= 4):
+            raise ValueError("Invalid version: %u (expected 1-4)" % version)
         if version == 1 and self._be:
             raise ValueError("Invalid version: %u-wiiu (expected 1-3)" % version)
 
