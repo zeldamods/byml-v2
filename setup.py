@@ -22,7 +22,7 @@ setuptools.setup(
         "Topic :: Software Development :: Libraries",
     ],
     python_requires='>=3.6',
-    install_requires=['PyYAML~=5.1', 'sortedcontainers~=2.0', 'wszst_yaz0~=1.0'],
+    install_requires=['PyYAML~=5.1', 'sortedcontainers~=2.0', 'syaz0~=1.0'],
     entry_points = {
         'console_scripts': [
             'byml_to_yml = byml.byml_to_yml:main',
