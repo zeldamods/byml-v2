@@ -185,7 +185,10 @@ class Byml:
 
     def _read_string(self, offset: int) -> str:
         end = self._data.find(_NUL_CHAR, offset)
-        return self._data[offset:end].decode('utf-8')
+        try:
+            return self._data[offset:end].decode('utf-8')
+        except UnicodeDecodeError:
+            return self._data[offset:end].decode('cp1252')
 
 class _PlaceholderOffsetWriter:
     """Writes a placeholder offset value that will be filled later."""
