@@ -8,6 +8,7 @@ import typing
 
 class NodeType(IntEnum):
     STRING = 0xa0
+    BINARY = 0xa1
     ARRAY = 0xc0
     HASH = 0xc1
     STRING_TABLE = 0xc2
@@ -104,6 +105,8 @@ class Byml:
     def _parse_node(self, node_type: int, offset: int):
         if node_type == NodeType.STRING:
             return self._parse_string_node(self._read_u32(offset))
+        if node_type == NodeType.BINARY:
+            return self._parse_binary_node(self._read_u32(offset))
         if node_type == NodeType.ARRAY:
             return self._parse_array_node(self._read_u32(offset))
         if node_type == NodeType.HASH:
@@ -128,6 +131,10 @@ class Byml:
 
     def _parse_string_node(self, index: int) -> str:
         return self._string_table[index]
+
+    def _parse_binary_node(self, offset: int) -> bytes:
+        size = self._read_u32(offset)
+        return self._data[offset:offset+size]
 
     def _parse_array_node(self, offset: int) -> list:
         size = self._read_u24(offset + 1)

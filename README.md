@@ -2,7 +2,7 @@
 
 Features:
 
-* **Supports v2 and v3 files.** These versions are respectively used by
+* **Supports v2, v3 and v4 files.** These versions are respectively used by
 *The Legend of Zelda: Breath of the Wild* and *Super Mario Odyssey*.
 * **Supports 64-bit node types** which are used in *Super Mario Odyssey*.
 * **Supports both endianness**. The little-endian format is used on the Switch.
