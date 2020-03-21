@@ -231,8 +231,8 @@ class Writer:
         if not isinstance(data, list) and not isinstance(data, dict):
             raise ValueError("Data should be a dict or a list")
 
-        if not (1 <= version <= 3):
-            raise ValueError("Invalid version: %u (expected 1-3)" % version)
+        if not (1 <= version <= 4):
+            raise ValueError("Invalid version: %u (expected 1-4)" % version)
         if version == 1 and be:
             raise ValueError("Invalid version: %u-wiiu (expected 1-3)" % version)
 
@@ -339,6 +339,9 @@ class Writer:
                     stream.write(self._to_byml_value(value))
                 else:
                     nonvalue_nodes.append((value, self._write_placeholder_offset(stream)))
+        elif isinstance(data, bytes):
+            stream.write(self._u32(len(data)))
+            stream.write(data)
         elif isinstance(data, UInt64):
             stream.write(self._u64(data))
         elif isinstance(data, Int64):
@@ -363,6 +366,8 @@ class Writer:
     def _to_byml_type(self, data) -> NodeType:
         if isinstance(data, str):
             return NodeType.STRING
+        if isinstance(data, bytes):
+            return NodeType.BINARY
         if isinstance(data, list):
             return NodeType.ARRAY
         if isinstance(data, dict):
