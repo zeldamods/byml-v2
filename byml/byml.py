@@ -134,7 +134,7 @@ class Byml:
 
     def _parse_binary_node(self, offset: int) -> bytes:
         size = self._read_u32(offset)
-        return self._data[offset:offset+size]
+        return self._data[offset+4:offset+4+size]
 
     def _parse_array_node(self, offset: int) -> list:
         size = self._read_u24(offset + 1)
