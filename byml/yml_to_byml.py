@@ -6,7 +6,7 @@ import sys
 import yaml
 
 from . import byml
-import syaz0
+import oead
 from . import yaml_util
 
 def main() -> None:
@@ -36,7 +36,7 @@ def main() -> None:
         if args.byml != '-':
             extension = os.path.splitext(args.byml)[1]
             if extension.startswith('.s'):
-                buf = io.BytesIO(syaz0.compress(buf.read()))
+                buf = io.BytesIO(oead.yaz0.compress(buf.read()))
 
         output = sys.stdout.buffer if args.byml == '-' else open(args.byml, 'wb')
         with output:

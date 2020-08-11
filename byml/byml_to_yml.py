@@ -5,7 +5,7 @@ import sys
 import yaml
 
 from . import byml
-import syaz0
+import oead
 from . import yaml_util
 
 def main() -> None:
@@ -22,7 +22,7 @@ def main() -> None:
     with file:
         data = file.read()
         if data[0:4] == b'Yaz0':
-            data = syaz0.decompress(data)
+            data = oead.yaz0.decompress(data)
         root = byml.Byml(data).parse()
 
         if args.byml != '-':
