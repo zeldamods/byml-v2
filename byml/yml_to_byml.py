@@ -13,7 +13,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description='Converts a YAML file to BYML.')
     parser.add_argument('yml', help='Path to a YAML file', nargs='?', default='-')
     parser.add_argument('byml', help='Path to destination BYAML file', nargs='?', default='-')
-    parser.add_argument('-V', '--version', default=2, help='BYML version (1, 2, 3)')
+    parser.add_argument('-V', '--version', type=int, default=2, help='BYML version (1, 2, 3)')
     parser.add_argument('-b', '--be', action='store_true', help='Use big endian. Defaults to false.')
     args = parser.parse_args()
 
